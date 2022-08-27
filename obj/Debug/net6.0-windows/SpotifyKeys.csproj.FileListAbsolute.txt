@@ -1,0 +1,17 @@
+E:\Repos\SpotifyKeys\bin\Debug\net6.0-windows\SpotifyKeys.exe
+E:\Repos\SpotifyKeys\bin\Debug\net6.0-windows\SpotifyKeys.deps.json
+E:\Repos\SpotifyKeys\bin\Debug\net6.0-windows\SpotifyKeys.runtimeconfig.json
+E:\Repos\SpotifyKeys\bin\Debug\net6.0-windows\SpotifyKeys.dll
+E:\Repos\SpotifyKeys\bin\Debug\net6.0-windows\SpotifyKeys.pdb
+E:\Repos\SpotifyKeys\obj\Debug\net6.0-windows\SpotifyKeys.csproj.AssemblyReference.cache
+E:\Repos\SpotifyKeys\obj\Debug\net6.0-windows\SpotifyKeys.Form1.resources
+E:\Repos\SpotifyKeys\obj\Debug\net6.0-windows\SpotifyKeys.csproj.GenerateResource.cache
+E:\Repos\SpotifyKeys\obj\Debug\net6.0-windows\SpotifyKeys.GeneratedMSBuildEditorConfig.editorconfig
+E:\Repos\SpotifyKeys\obj\Debug\net6.0-windows\SpotifyKeys.AssemblyInfoInputs.cache
+E:\Repos\SpotifyKeys\obj\Debug\net6.0-windows\SpotifyKeys.AssemblyInfo.cs
+E:\Repos\SpotifyKeys\obj\Debug\net6.0-windows\SpotifyKeys.csproj.CoreCompileInputs.cache
+E:\Repos\SpotifyKeys\obj\Debug\net6.0-windows\SpotifyKeys.dll
+E:\Repos\SpotifyKeys\obj\Debug\net6.0-windows\refint\SpotifyKeys.dll
+E:\Repos\SpotifyKeys\obj\Debug\net6.0-windows\SpotifyKeys.pdb
+E:\Repos\SpotifyKeys\obj\Debug\net6.0-windows\SpotifyKeys.genruntimeconfig.cache
+E:\Repos\SpotifyKeys\obj\Debug\net6.0-windows\ref\SpotifyKeys.dll
