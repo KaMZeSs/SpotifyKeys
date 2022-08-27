@@ -4,45 +4,127 @@ namespace SpotifyKeys
 {
     public partial class Form1 : Form
     {
-        Hook.globalKeyboardHook hook;
-        Hook.KeyProcesser.kbShortcut currShortcut;
+        Hook.globalKeyboardHook MainHook, SettingHook;
+        Hook.KbShortcut currShortcut;
+        Hook.KbShortcut currSettingShortcut, maxCurrSettingShortcut;
+
+        Spotify_Win32.SpotifySender spotifySender;
+
+        Dictionary<String, Hook.KbShortcut> shortcuts = new();
 
         public Form1()
         {
             InitializeComponent();
+            
             currShortcut = new();
+            currSettingShortcut = new();
+            maxCurrSettingShortcut = new();
 
-            hook = new();
+            MainHook = new() { IsAllKeys = true }; //Временно
+            MainHook.KeyUp = this.MainHook_KeyUp;
+            MainHook.KeyDown = this.MainHook_KeyDown;
 
-            hook.HookedKeys.Add(Keys.LControlKey);
-            //hook.HookedKeys.Add(Keys.LShiftKey);
-            //hook.HookedKeys.Add(Keys.LMenu);
+            SettingHook = new() { IsAllKeys = true };
+            SettingHook.KeyDown = this.SettingHook_KeyDown;
+            SettingHook.KeyUp = this.SettingHook_KeyUp;
 
-            hook.HookedKeys.Add(Keys.A);
-            hook.HookedKeys.Add(Keys.B);
-            hook.HookedKeys.Add(Keys.C);
-
-            hook.KeyDown += this.Hook_KeyDown;
-            hook.KeyUp += this.Hook_KeyUp;
+            spotifySender = new();
         }
 
-        private void Hook_KeyDown(Keys key)
+        private void Form1_Load(object sender, EventArgs e)
         {
-            if (currShortcut.keys.Add(key))
+            try
             {
-                var text = Hook.KeyProcesser.ShortcatViewer(currShortcut);
-                if (text is not null)
-                    richTextBox1.Text += text + Environment.NewLine;
+                spotifySender.FindSpotifyWindow();
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show(exc.ToString());
             }
         }
 
-        private void Hook_KeyUp(Keys key)
+        private void MainHook_KeyDown(Keys key)
         {
-            if (currShortcut.keys.Remove(key))
+            if (currShortcut.Keys.Add(key))
             {
-                var text = Hook.KeyProcesser.ShortcatViewer(currShortcut);
-                if (text is not null)
-                    richTextBox1.Text += text + Environment.NewLine;
+                foreach (var item in shortcuts)
+                {
+                    if (item.Value.isEqual(currShortcut))
+                    {
+                        ExecuteCommand(item.Key);
+                    }
+                }
+            }
+        }
+
+        private void ExecuteCommand(String command)
+        {
+            switch (command)
+            {
+                case "PauseStart":
+                {
+                    spotifySender.SendMessage(Spotify_Win32.AppComandCode.MEDIA_PLAY_PAUSE);
+                    break;
+                }
+            }
+        }
+
+        private void MainHook_KeyUp(Keys key)
+        {
+            if (currShortcut.Keys.Remove(key))
+            {
+                //var text = Hook.KeyProcesser.ShortcatViewer(currShortcut);
+                //if (text is not null)
+                //    richTextBox1.Text += text + Environment.NewLine;
+            }
+        }
+
+        TextBox currSettingTextBox;
+
+        private void SettingHook_KeyDown(Keys key)
+        {
+            if (currSettingShortcut.Keys.Add(key))
+            {
+                maxCurrSettingShortcut.Keys.Add(key);
+                currSettingTextBox.Text = currSettingShortcut.ToString();
+            }
+        }
+
+        private void SettingHook_KeyUp(Keys key)
+        {
+            if (currSettingShortcut.Keys.Remove(key))
+            {
+                if (currSettingShortcut.Keys.Count is 0)
+                {
+                    SettingHook.unhook();
+                    currSettingTextBox.Text = String.Empty;
+                    shortcuts.Add("PauseStart", maxCurrSettingShortcut);
+                    currSettingShortcut.Keys.Clear();
+                    maxCurrSettingShortcut = new();
+                    MainHook.hook();
+                }
+            }
+        }
+
+        private void SettingButton_Click(object sender, EventArgs e)
+        {
+            var senderButton = sender as Button;
+            if (senderButton.Text is "Настроить")
+            {
+                currSettingTextBox = this.PauseStart_textbox;
+            }
+            MainHook.unhook();
+            SettingHook.hook();
+        }
+
+        private void WorkState_ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var item = sender as ToolStripMenuItem;
+            item.Checked = !item.Checked;
+            if (item.Checked)
+            {
+                SettingHook.unhook();
+                MainHook.hook();
             }
         }
     }

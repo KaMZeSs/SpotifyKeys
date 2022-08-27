@@ -27,6 +27,9 @@ namespace SpotifyKeys.Hook
 		const int WM_KEYUP = 0x101;
 		const int WM_SYSKEYDOWN = 0x104;
 		const int WM_SYSKEYUP = 0x105;
+
+		private bool isAllKeys;
+		public bool IsAllKeys { get { return isAllKeys; } set { isAllKeys = value; } }
 		#endregion
 
 		#region Instance Variables
@@ -56,7 +59,7 @@ namespace SpotifyKeys.Hook
 		/// Initializes a new instance of the <see cref="globalKeyboardHook"/> class and installs the keyboard hook.
 		/// </summary>
 		public globalKeyboardHook() {
-			hook();
+			isAllKeys = false;
 		}
 
 		/// <summary>
@@ -94,7 +97,8 @@ namespace SpotifyKeys.Hook
 		public int hookProc(int code, int wParam, ref keyboardHookStruct lParam) {
 			if (code >= 0) {
 				Keys key = (Keys)lParam.vkCode;
-				if (HookedKeys.Contains(key)) {
+
+				if (isAllKeys || HookedKeys.Contains(key)) {
 					if ((wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) && (KeyDown != null)) 
 					{
 						KeyDown(key);
@@ -104,6 +108,7 @@ namespace SpotifyKeys.Hook
 						KeyUp(key);
 					}
 				}
+
 			}
 			return CallNextHookEx(hhook, code, wParam, ref lParam);
 		}
