@@ -1,4 +1,6 @@
 using System.Windows.Forms;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace SpotifyKeys
 {
@@ -66,6 +68,26 @@ namespace SpotifyKeys
                     spotifySender.SendMessage(Spotify_Win32.AppComandCode.MEDIA_PLAY_PAUSE);
                     break;
                 }
+                case "NextTrack":
+                {
+                    spotifySender.SendMessage(Spotify_Win32.AppComandCode.MEDIA_NEXTTRACK);
+                    break;
+                }
+                case "PreviousTrack":
+                {
+                    spotifySender.SendMessage(Spotify_Win32.AppComandCode.MEDIA_PREVIOUSTRACK);
+                    break;
+                }
+                case "FastForwardTrack":
+                {
+                    spotifySender.SendMessage(Spotify_Win32.AppComandCode.MEDIA_FASTFORWARD);
+                    break;
+                }
+                case "RewindTrack":
+                {
+                    spotifySender.SendMessage(Spotify_Win32.AppComandCode.MEDIA_REWIND);
+                    break;
+                }
             }
         }
 
@@ -73,13 +95,12 @@ namespace SpotifyKeys
         {
             if (currShortcut.Keys.Remove(key))
             {
-                //var text = Hook.KeyProcesser.ShortcatViewer(currShortcut);
-                //if (text is not null)
-                //    richTextBox1.Text += text + Environment.NewLine;
             }
         }
 
         TextBox currSettingTextBox;
+        String currSettingName;
+        Button senderButton;
 
         private void SettingHook_KeyDown(Keys key)
         {
@@ -97,10 +118,11 @@ namespace SpotifyKeys
                 if (currSettingShortcut.Keys.Count is 0)
                 {
                     SettingHook.unhook();
-                    currSettingTextBox.Text = String.Empty;
-                    shortcuts.Add("PauseStart", maxCurrSettingShortcut);
+                    shortcuts.Add(currSettingName, maxCurrSettingShortcut);
                     currSettingShortcut.Keys.Clear();
                     maxCurrSettingShortcut = new();
+                    currSettingName = string.Empty;
+                    senderButton.Enabled = true;
                     MainHook.hook();
                 }
             }
@@ -108,23 +130,107 @@ namespace SpotifyKeys
 
         private void SettingButton_Click(object sender, EventArgs e)
         {
-            var senderButton = sender as Button;
-            if (senderButton.Text is "Настроить")
+            senderButton = sender as Button;
+
+            if (senderButton == PauseStart_button)
             {
                 currSettingTextBox = this.PauseStart_textbox;
+                currSettingName = "PauseStart";
             }
+            else if (senderButton == NextTrack_button)
+            {
+                currSettingTextBox = this.NextTrack_textbox;
+                currSettingName = "NextTrack";
+            }
+            else if (senderButton == PreviousTrack_button)
+            {
+                currSettingTextBox = this.PreviousTrack_textbox;
+                currSettingName = "PreviousTrack";
+            }
+            else if (senderButton == FastForwardTrack_button)
+            {
+                currSettingTextBox = this.FastForwardTrack_textbox;
+                currSettingName = "FastForwardTrack";
+            }
+            else if (senderButton == RewindTrack_button)
+            {
+                currSettingTextBox = this.RewindTrack_textbox;
+                currSettingName = "RewindTrack";
+            }
+
+            senderButton.Enabled = false;
             MainHook.unhook();
             SettingHook.hook();
         }
 
-        private void WorkState_ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void Save_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var item = sender as ToolStripMenuItem;
-            item.Checked = !item.Checked;
-            if (item.Checked)
+            SaveFileDialog dialog = new SaveFileDialog()
             {
-                SettingHook.unhook();
-                MainHook.hook();
+                Filter = "settings file (*.setprogr)|*.setprogr"
+            };
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                
+                using (var stream = new StreamWriter(dialog.FileName))
+                {
+                    foreach (var item in shortcuts)
+                    {
+                        stream.WriteLine($"{item.Key} // {item.Value}");
+                    }
+                }
+            }
+        }
+
+        private void Load_ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog dialog = new OpenFileDialog()
+            {
+                Filter = "settings file (*.setprogr)|*.setprogr"
+            };
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                using (var stream = new StreamReader(dialog.FileName))
+                {
+                    var lines = stream.ReadToEnd().Split(Environment.NewLine);
+                    foreach (var line in lines)
+                    {
+                        var info = line.Split(" // ");
+                        Keys key;
+                        switch (info[0])
+                        {
+                            case "PauseStart":
+                            {
+                                if (Enum.TryParse(info[1], out key))//Надо сделать split(" + ") и по каждой кнопке
+                                {
+                                    
+                                    this.PauseStart_textbox.Text = info[1];
+                                }
+                                break;
+                            }
+                            case "NextTrack":
+                            {
+                                this.NextTrack_textbox.Text = info[1];
+                                break;
+                            }
+                            case "PreviousTrack":
+                            {
+                                this.PreviousTrack_textbox.Text = info[1];
+                                break;
+                            }
+                            case "FastForwardTrack":
+                            {
+                                this.FastForwardTrack_textbox.Text = info[1];
+                                break;
+                            }
+                            case "RewindTrack":
+                            {
+                                this.RewindTrack_textbox.Text = info[1];
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
