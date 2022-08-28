@@ -6,7 +6,7 @@ namespace SpotifyKeys
 {
     public partial class Form1 : Form
     {
-        Hook.globalKeyboardHook MainHook, SettingHook;
+        Hook.globalKeyboardHook MainHook;
         Hook.KbShortcut currShortcut;
         Hook.KbShortcut currSettingShortcut, maxCurrSettingShortcut;
 
@@ -22,13 +22,9 @@ namespace SpotifyKeys
             currSettingShortcut = new();
             maxCurrSettingShortcut = new();
 
-            MainHook = new() { IsAllKeys = true }; //Временно
+            MainHook = new();
             MainHook.KeyUp = this.MainHook_KeyUp;
             MainHook.KeyDown = this.MainHook_KeyDown;
-
-            SettingHook = new() { IsAllKeys = true };
-            SettingHook.KeyDown = this.SettingHook_KeyDown;
-            SettingHook.KeyUp = this.SettingHook_KeyUp;
 
             spotifySender = new();
         }
@@ -47,15 +43,22 @@ namespace SpotifyKeys
 
         private void MainHook_KeyDown(Keys key)
         {
-            if (currShortcut.Keys.Add(key))
+            try
             {
-                foreach (var item in shortcuts)
+                if (currShortcut.Keys.Add(key))
                 {
-                    if (item.Value.isEqual(currShortcut))
+                    foreach (var item in shortcuts)
                     {
-                        ExecuteCommand(item.Key);
+                        if (item.Value.isEqual(currShortcut))
+                        {
+                            ExecuteCommand(item.Key);
+                        }
                     }
                 }
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show(exc.Message);
             }
         }
 
@@ -117,12 +120,21 @@ namespace SpotifyKeys
             {
                 if (currSettingShortcut.Keys.Count is 0)
                 {
-                    SettingHook.unhook();
+                    shortcuts.Remove(currSettingName);
                     shortcuts.Add(currSettingName, maxCurrSettingShortcut);
                     currSettingShortcut.Keys.Clear();
                     maxCurrSettingShortcut = new();
                     currSettingName = string.Empty;
                     senderButton.Enabled = true;
+
+                    MainHook.HookedKeys = GetKeys(shortcuts).ToList();
+
+                    MainHook.unhook();
+                    MainHook.KeyUp -= SettingHook_KeyUp;
+                    MainHook.KeyDown -= SettingHook_KeyDown;
+
+                    MainHook.KeyUp += MainHook_KeyUp;
+                    MainHook.KeyDown += MainHook_KeyDown;
                     MainHook.hook();
                 }
             }
@@ -130,6 +142,15 @@ namespace SpotifyKeys
 
         private void SettingButton_Click(object sender, EventArgs e)
         {
+            MainHook.unhook();
+            MainHook.KeyUp -= MainHook_KeyUp;
+            MainHook.KeyDown -= MainHook_KeyDown;
+            MainHook.HookedKeys.Clear();
+
+            MainHook.KeyUp += SettingHook_KeyUp;
+            MainHook.KeyDown += SettingHook_KeyDown;
+            MainHook.hook();
+
             senderButton = sender as Button;
 
             if (senderButton == PauseStart_button)
@@ -159,8 +180,6 @@ namespace SpotifyKeys
             }
 
             senderButton.Enabled = false;
-            MainHook.unhook();
-            SettingHook.hook();
         }
 
         private void Save_ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -232,6 +251,21 @@ namespace SpotifyKeys
                     }
                 }
             }
+        }
+
+        private static HashSet<Keys> GetKeys(Dictionary<String, Hook.KbShortcut> vs)
+        {
+            HashSet<Keys> keys = new();
+
+            foreach (var set in vs)
+            {
+                foreach (var key in set.Value.Keys)
+                {
+                    keys.Add(key);
+                }
+            }
+            
+            return keys;
         }
     }
 }
