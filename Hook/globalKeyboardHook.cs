@@ -1,5 +1,7 @@
 using System.Runtime.InteropServices;
 
+using static SpotifyKeys.Hook.globalKeyboardHook;
+
 namespace SpotifyKeys.Hook
 {
 	/// <summary>
@@ -11,8 +13,10 @@ namespace SpotifyKeys.Hook
 		/// defines the callback type for the hook
 		/// </summary>
 		public delegate int keyboardHookProc(int code, int wParam, ref keyboardHookStruct lParam);
+        keyboardHookProc _hookProc;
 
-		public delegate void KeyHandler(Keys key);
+
+        public delegate void KeyHandler(Keys key);
 
 		public struct keyboardHookStruct {
 			public int vkCode;
@@ -57,14 +61,14 @@ namespace SpotifyKeys.Hook
 		/// Initializes a new instance of the <see cref="globalKeyboardHook"/> class and installs the keyboard hook.
 		/// </summary>
 		public globalKeyboardHook() {
-			
-		}
+			_hookProc = new keyboardHookProc(hookProc);
+        }
 
-		/// <summary>
-		/// Releases unmanaged resources and performs other cleanup operations before the
-		/// <see cref="globalKeyboardHook"/> is reclaimed by garbage collection and uninstalls the keyboard hook.
-		/// </summary>
-		~globalKeyboardHook() {
+        /// <summary>
+        /// Releases unmanaged resources and performs other cleanup operations before the
+        /// <see cref="globalKeyboardHook"/> is reclaimed by garbage collection and uninstalls the keyboard hook.
+        /// </summary>
+        ~globalKeyboardHook() {
 			unhook();
 		}
 		#endregion
@@ -75,7 +79,7 @@ namespace SpotifyKeys.Hook
 		/// </summary>
 		public void hook() {
 			IntPtr hInstance = LoadLibrary("User32");
-			hhook = SetWindowsHookEx(WH_KEYBOARD_LL, hookProc, hInstance, 0);
+			hhook = SetWindowsHookEx(WH_KEYBOARD_LL, _hookProc, hInstance, 0);
 		}
 
 		/// <summary>
@@ -109,7 +113,7 @@ namespace SpotifyKeys.Hook
 				}
 
 			}
-			return CallNextHookEx(hhook, code, wParam, ref lParam);
+			return CallNextHookEx(hhook, code, wParam, ref lParam).ToInt32();
 		}
 
 		#endregion
@@ -143,7 +147,7 @@ namespace SpotifyKeys.Hook
 		/// <param name="lParam">The lparam.</param>
 		/// <returns></returns>
 		[DllImport("user32.dll")]
-		static extern int CallNextHookEx(IntPtr idHook, int nCode, int wParam, ref keyboardHookStruct lParam);
+		static extern IntPtr CallNextHookEx(IntPtr idHook, int nCode, int wParam, ref keyboardHookStruct lParam);
 
 		/// <summary>
 		/// Loads the library.
@@ -152,6 +156,7 @@ namespace SpotifyKeys.Hook
 		/// <returns>A handle to the library</returns>
 		[DllImport("kernel32.dll")]
 		static extern IntPtr LoadLibrary(string lpFileName);
+
 		#endregion
 	}
 }

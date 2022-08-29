@@ -1,6 +1,8 @@
 using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
+using System.Windows.Input;
+using Timer = System.Windows.Forms.Timer;
 
 namespace SpotifyKeys
 {
@@ -52,6 +54,7 @@ namespace SpotifyKeys
                         if (item.Value.isEqual(currShortcut))
                         {
                             ExecuteCommand(item.Key);
+                            return;
                         }
                     }
                 }
@@ -62,13 +65,13 @@ namespace SpotifyKeys
             }
         }
 
-        private void ExecuteCommand(String command)
+        private async void ExecuteCommand(String command)
         {
             switch (command)
             {
                 case "PauseStart":
                 {
-                    spotifySender.SendMessage(Spotify_Win32.AppComandCode.MEDIA_PLAY_PAUSE);
+                    spotifySender.SendMessage(Spotify_Win32.AppComandCode.MEDIA_PLAY_PAUSE);                 
                     break;
                 }
                 case "NextTrack":
