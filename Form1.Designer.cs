@@ -50,6 +50,7 @@
             this.RewindTrack_textbox = new System.Windows.Forms.TextBox();
             this.RewindTrack_label = new System.Windows.Forms.Label();
             this.RewindTrack_button = new System.Windows.Forms.Button();
+            this.Status_label = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -243,11 +244,21 @@
             this.RewindTrack_button.UseVisualStyleBackColor = true;
             this.RewindTrack_button.Click += new System.EventHandler(this.SettingButton_Click);
             // 
+            // Status_label
+            // 
+            this.Status_label.AutoSize = true;
+            this.Status_label.Location = new System.Drawing.Point(311, 56);
+            this.Status_label.Name = "Status_label";
+            this.Status_label.Size = new System.Drawing.Size(81, 15);
+            this.Status_label.TabIndex = 4;
+            this.Status_label.Text = "Status: Closed";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(602, 207);
+            this.Controls.Add(this.Status_label);
             this.Controls.Add(this.PreviousTrack_button);
             this.Controls.Add(this.RewindTrack_button);
             this.Controls.Add(this.FastForwardTrack_button);
@@ -299,5 +310,6 @@
         private TextBox RewindTrack_textbox;
         private Label RewindTrack_label;
         private Button RewindTrack_button;
+        private Label Status_label;
     }
 }

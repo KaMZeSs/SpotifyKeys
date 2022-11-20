@@ -3,6 +3,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.Windows.Input;
 using Timer = System.Windows.Forms.Timer;
+using System.Diagnostics;
 
 namespace SpotifyKeys
 {
@@ -15,6 +16,24 @@ namespace SpotifyKeys
         Spotify_Win32.SpotifySender spotifySender;
 
         Dictionary<String, Hook.KbShortcut> shortcuts = new();
+
+        bool isSpotifyValue;
+        bool isSpotifyOpened
+        {
+            get
+            {
+                return isSpotifyValue;
+            }
+            set
+            {
+                isSpotifyValue = value;
+                this.Status_label.Text = "Status: " + (value ? "OK" : "Waiting");
+            }
+        }
+
+        String pathToSpotifyEXE = string.Empty;
+
+        private Timer timer;
 
         public Form1()
         {
@@ -29,18 +48,65 @@ namespace SpotifyKeys
             MainHook.KeyDown = this.MainHook_KeyDown;
 
             spotifySender = new();
+
+            timer = new();
+            timer.Tick += this.ChechForAdv;
+            timer.Interval = 1000;
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        async void ChechForAdv(object? sender, EventArgs e)
+        {
+            if (!isSpotifyOpened)
+                return;
+            var windowName = this.spotifySender.GetSpotifyWindowName();
+            if (windowName.Equals("Advertisement"))
+            {
+                this.timer.Stop();
+
+                this.spotifySender.CloseSpotifyWindow();
+
+                var proc = Process.Start(pathToSpotifyEXE);
+
+                await this.WaitingForWindow();
+
+                this.ExecuteCommand("PauseStart");
+                this.ExecuteCommand("NextTrack");
+
+                this.timer.Start();
+            }
+        }
+
+        private async void Form1_Load(object sender, EventArgs e)
         {
             try
             {
-                spotifySender.FindSpotifyWindow();
+                await this.WaitingForWindow();
+                pathToSpotifyEXE = this.spotifySender.FindSpotifyExecutable();
+
+                this.timer.Start();
             }
             catch (Exception exc)
             {
                 MessageBox.Show(exc.ToString());
             }
+        }
+
+        private async Task WaitingForWindow()
+        {
+            isSpotifyOpened = false;
+            do
+            {
+                try
+                {
+                    this.spotifySender.FindSpotifyWindow();
+                }
+                catch 
+                {
+                    await Task.Delay(500);
+                }
+            }
+            while (this.spotifySender.SpotifyWindow.Equals(IntPtr.Zero));
+            isSpotifyOpened = true;
         }
 
         private void MainHook_KeyDown(Keys key)
@@ -67,6 +133,8 @@ namespace SpotifyKeys
 
         private async void ExecuteCommand(String command)
         {
+            if (!this.isSpotifyOpened)
+                return;
             switch (command)
             {
                 case "PauseStart":

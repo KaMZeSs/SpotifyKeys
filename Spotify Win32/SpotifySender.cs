@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -48,5 +51,56 @@ namespace SpotifyKeys.Spotify_Win32
             SendMessageW(spotifyWindow, WM_APPCOMMAND, 
                 spotifyWindow, (IntPtr)((int)code << 16));
         }
+
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        static extern int GetWindowThreadProcessId(IntPtr handle, out uint processId);
+        public String FindSpotifyExecutable()
+        {
+            if (spotifyWindow == IntPtr.Zero)
+            {
+                throw new Exception("Cannot find Spotify Window");
+            }
+            
+            uint pid;
+            GetWindowThreadProcessId(spotifyWindow, out pid);
+
+            Process proc = Process.GetProcessById((int)pid); //Gets the process by ID.
+            return proc.MainModule.FileName.ToString();    //Returns the path.
+        }
+
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern int GetWindowTextLength(HandleRef hWnd);
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern int GetWindowText(HandleRef hWnd, StringBuilder lpString, int nMaxCount);
+
+        public String GetSpotifyWindowName()
+        {
+            if (spotifyWindow == IntPtr.Zero)
+            {
+                throw new Exception("Cannot find Spotify Window");
+            }
+
+            var capacity = GetWindowTextLength(new(this, spotifyWindow)) * 2;
+            var sb = new StringBuilder(capacity);
+
+            GetWindowText(new(this, spotifyWindow), sb, sb.Capacity);
+
+            return sb.ToString();
+        }
+
+        public void CloseSpotifyWindow()
+        {
+            uint pid;
+            GetWindowThreadProcessId(spotifyWindow, out pid);
+
+            var proc = Process.GetProcessById((int)pid); //Gets the process by ID.
+
+            proc.Kill(true);
+
+            spotifyWindow = IntPtr.Zero;
+        }
     }
 }
+
